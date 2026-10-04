@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "C:\\Users\\sohze\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        }
+    ]
+}
