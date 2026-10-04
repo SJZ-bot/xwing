@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives import serialization
 
 # Import the genuine ML-KEM-768 standard library package
-from kyber import Kyber768
+from kyber_py.kyber import Kyber768
 
 # Constants based on FIPS 203 and X25519 specifications
 MLKEM_PK_BYTES = 1184
