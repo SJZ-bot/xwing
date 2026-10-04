@@ -1,7 +1,11 @@
+# xwing.py
 import os
 import hashlib
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives import serialization
+
+# Import the genuine ML-KEM-768 standard library package
+from kyber import Kyber768
 
 # Constants based on FIPS 203 and X25519 specifications
 MLKEM_PK_BYTES = 1184
@@ -11,35 +15,15 @@ X25519_BYTES = 32
 
 XWING_LABEL = b"\\/.\\//\\publickey"
 
-class MockKyber768:
-    _storage = {}
-    @staticmethod
-    def keygen():
-        pk = os.urandom(MLKEM_PK_BYTES)
-        sk = os.urandom(MLKEM_SK_BYTES)
-        return pk, sk
-    @staticmethod
-    def encaps(ek):
-        ct = os.urandom(MLKEM_CT_BYTES)
-        ss = os.urandom(32)
-        MockKyber768._storage[ct] = ss
-        return ct, ss
-    @staticmethod
-    def decaps(sk, ct):
-        return MockKyber768._storage.get(ct, os.urandom(32))
-
-try:
-    from kyber import Kyber768
-except ImportError:
-    Kyber768 = MockKyber768
-
 def keygen() -> tuple[bytes, bytes]:
     """
-    Generates an X-Wing keypair.
+    Generates an authentic X-Wing keypair using real ML-KEM-768 and X25519.
     Returns: (public_key, private_key) concatenated as bytes.
     """
+    # 1. Generate real lattice-based ML-KEM-768 Keypair
     pk_mlkem, sk_mlkem = Kyber768.keygen()
     
+    # 2. Generate classical X25519 Keypair
     sk_x25519_obj = x25519.X25519PrivateKey.generate()
     pk_x25519_obj = sk_x25519_obj.public_key()
     
@@ -49,10 +33,11 @@ def keygen() -> tuple[bytes, bytes]:
     )
     sk_x25519 = sk_x25519_obj.private_bytes(
         encoding=serialization.Encoding.Raw,
-        format=serialization.PrivateFormat.Raw,
+        format=serialization.PublicFormat.Raw,
         encryption_algorithm=serialization.NoEncryption()
     )
     
+    # 3. Concatenate public and private structures securely
     public_key = pk_mlkem + pk_x25519
     private_key = sk_mlkem + sk_x25519 + pk_x25519
     
@@ -60,12 +45,13 @@ def keygen() -> tuple[bytes, bytes]:
 
 def encaps(public_key: bytes) -> tuple[bytes, bytes]:
     """
-    X-Wing Encapsulation mechanism.
+    Real X-Wing Encapsulation mechanism mixing both primitives.
     Returns: (ciphertext, shared_secret)
     """
     ek_mlkem = public_key[:MLKEM_PK_BYTES]
     pk_x25519_bytes = public_key[MLKEM_PK_BYTES:]
     
+    # Real ML-KEM encapsulation mathematical operations
     ct_mlkem, ss_mlkem = Kyber768.encaps(ek_mlkem)
     
     sk_ephemeral_obj = x25519.X25519PrivateKey.generate()
@@ -77,6 +63,7 @@ def encaps(public_key: bytes) -> tuple[bytes, bytes]:
     peer_pk_x25519 = x25519.X25519PublicKey.from_public_bytes(pk_x25519_bytes)
     ss_x25519 = sk_ephemeral_obj.exchange(peer_pk_x25519)
     
+    # Mix components securely via SHA3-256 combiner function
     hasher = hashlib.sha3_256()
     hasher.update(XWING_LABEL)
     hasher.update(ss_mlkem)
@@ -90,7 +77,7 @@ def encaps(public_key: bytes) -> tuple[bytes, bytes]:
 
 def decaps(ciphertext: bytes, private_key: bytes) -> bytes:
     """
-    X-Wing Decapsulation mechanism.
+    Real X-Wing Decapsulation mechanism decoding both primitives.
     Returns: shared_secret
     """
     ct_mlkem = ciphertext[:MLKEM_CT_BYTES]
@@ -100,6 +87,7 @@ def decaps(ciphertext: bytes, private_key: bytes) -> bytes:
     sk_x25519_bytes = private_key[MLKEM_SK_BYTES : MLKEM_SK_BYTES + X25519_BYTES]
     pk_x25519_bytes = private_key[MLKEM_SK_BYTES + X25519_BYTES:]
     
+    # Real ML-KEM decapsulation mathematical operations
     ss_mlkem = Kyber768.decaps(sk_mlkem, ct_mlkem)
     
     sk_x25519_obj = x25519.X25519PrivateKey.from_private_bytes(sk_x25519_bytes)
