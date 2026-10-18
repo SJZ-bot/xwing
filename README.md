@@ -2,14 +2,14 @@
 
 An implementation of the **X-Wing hybrid key exchange pipeline** combining classical elliptic curve cryptography (**X25519**) and post-quantum lattice-based cryptography (**ML-KEM-768**) bound together by a **SHA3-256** combiner function. This configuration ensures IND-CCA2 security as long as at least one underlying primitive remains secure.
 
-## 📂 Project Architecture
+## Project Architecture
 * `xwing.py`: Core algorithm architecture hosting KeyGen, Encaps, and Decaps mechanisms.
 * `test_xwing.py`: Robust automated unittest validation checking edge cases and ciphertext corruption.
 * `benchmark.py`: Performance harness computing algorithmic speed across 1,000 continuous iterations.
 * `demo.py`: Interactive execution profile visualizing an end-to-end handshake simulation between Alice and Bob.
 * `requirements.txt`: Project library dependencies (`cryptography` and `kyber-py`).
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### 1. Environment Setup
 Install the necessary cryptographic primitive dependencies using pip:
